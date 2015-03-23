@@ -1,13 +1,3 @@
-window.onload = function() {
-	var tables = getAllTables();
-	makeAllTablesFilterable(tables);
-}
-
-// 获取表格
-function getAllTables() {
-	return document.getElementsByTagName("table");
-}
-
 // 筛选表格
 function makeAllTablesFilterable(tables) {
 	var inputBar = document.getElementsByName("table");
@@ -20,6 +10,11 @@ function makeAllTablesFilterable(tables) {
 			var td = table.getElementsByTagName("td");                           // 获取每个格子的对象
 			var search = this.value;                                             // 获取要查询的字符串
 			var hasRowIndex = [];                                                // 表示哪一行有要查询的内容，有存为“1”，没有为“0”
+
+			// 重现所有行
+			resetRows(table);
+			// 取消强调效果
+			resetHighlight(table);
 
 			// 初始化数组
 			for (var k = 0; k < table.getElementsByTagName("tr").length-1; k++) {
@@ -44,9 +39,47 @@ function makeAllTablesFilterable(tables) {
 			// 删除没有相关内容的行
 			for (var k = hasRowIndex.length-1; k >= 0; k--) {
 				if (hasRowIndex[k] == 0) {
-					table.deleteRow(k+1);
+					table.rows[k+1].style.display = "none";
 				}
 			}
+
+			// 设置奇偶行的背景颜色
+			setRowsColor(table);
 		}
+	}
+	return document.getElementsByTagName("table")
+}
+
+
+function resetRows(obj) {
+	for (var i = 0; i < obj.rows.length; i++) {
+		obj.rows[i].style.display = "table-row";
+	}
+}
+
+
+function resetHighlight(obj) {
+	var td = obj.getElementsByTagName("td");
+	for(var i = 0; i < td.length; i++) {
+		td[i].innerHTML = td[i].innerHTML.replace("</strong>", "");
+		td[i].innerHTML = td[i].innerHTML.replace("<strong>", "");
+	}
+}
+
+
+function setRowsColor(obj) {
+	var tbody = obj.getElementsByTagName("tbody")[0];
+	var tr = tbody.getElementsByTagName("tr");
+	var rows = [];                                                    // 存放当前显示的行
+
+	// 将display不为none的行放入数组
+	for (var i = 0; i < tr.length; i++) {
+		if (tr[i].style.display == "table-row") rows.push(tr[i]);
+	}
+
+	// 改变背景颜色
+	for (var i = 0; i < rows.length; i++) {
+		if (i%2 == 0) rows[i].style.backgroundColor = "#FFFFFF";
+		else rows[i].style.backgroundColor = "#DDDDDD";
 	}
 }

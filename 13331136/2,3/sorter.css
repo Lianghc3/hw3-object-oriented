@@ -34,13 +34,27 @@ th {
 	background: #000080 url("ascend.png") no-repeat right center;
 	background-size: 21px;
 	cursor: pointer;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	-o-user-select: none;
+	user-select: none; 
 }
 
 #staff td, th {
 	padding-right: 25px;
 }
 
-#todo tbody tr:nth-child(even) td,
-#staff tbody tr:nth-child(even) td {
+tbody tr:nth-child(even) td {
 	background-color: #DDDDDD;
+}
+
+th.ascend {
+	background: #A7AEFC url("ascend.png") no-repeat right center;
+	background-size: 21px;
+}
+
+th.descend {
+	background: #A7AEFC url("descend.png") no-repeat right center;
+	background-size: 21px;
 }

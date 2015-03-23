@@ -1,111 +1,124 @@
-// 排序方法用的是数组的sort（）函数
-// 然后判断应该是升序还是降序是通过判断css信息来做的，觉得有点low，想不出来更通用的办法...
-
-
 window.onload = function() {
 	var tables = getAllTables();
-	makeAllTablesSortable(tables);
+	makeAllTablesSortable(makeAllTablesFilterable(tables));
 }
 
 
-// 将表格内的信息储存为二维数组
+// 获取所有表格
 function getAllTables() {
-	var tablesWithTag = document.getElementsByTagName("td");
-	var tablesWithoutTag = [];
-
-	// 把tablesWithTag数组里的标签去掉，存在新数组tablesWithoutTag里面
-	for (var i = 0; i < tablesWithTag.length; i++) {
-		tablesWithoutTag.push(tablesWithTag[i].innerHTML);
-	}
-
-	// 将tablesWithoutTag转成二维数组
-	var tablesSplitted = [];
-	for (var i = 0; i < tablesWithoutTag.length; i = i+3) {
-		tablesSplitted.push(tablesWithoutTag.slice(i, i+3));
-	}
-
-	return tablesSplitted;
+	return document.getElementsByTagName("table");
 }
 
 
-// 判断哪个地方被点击了，然后将对应的内容排序，最后更改每行表格的内容
+// 将表格中的内容排序
 function makeAllTablesSortable(tables) {
+	for (var i = 0; i < tables.length; i++) {
+		var th = tables[i].getElementsByTagName("th");
+		for (var j = 0; j < th.length; j++) {
+			// 触发鼠标点击时间
+			th[j].onclick = function() {
+				var rows = getRows(this);                    // 存放所有当前显示出来的行
+				var order = this.className;                  // 升序还是排序（用类名来做区分）
+				var index = getIndex(this);                  // 存放被点击表头的下标
+				var sortedTables = getSingleTable(this);     // 存放将要排序的表格内容
+				var colsNum = rows[0].cells.length;          // 列数
+				var rowsNum = rows.length;                   // 行数
 
-	var sortedTables = [];                                  // 用来存排好序的数组
-	var header = document.getElementsByTagName("th");       // 获取全部表头，存在数组里
-	var cells = document.getElementsByTagName("td");        // 获取表格中的每一个数据，用来更给表格中的数据
-	var headerIndex = -1;                                   // 表示第几个表头被点击了
-	var tableIndex = 0;                                     // 表示哪一个表格被点击了，“0”表示上方表格，“3”表示下方表格
-	var image = "";                                         // 储存表头的背景图片信息
-	var bgColor = "";                                       // 储存表头的背景颜色信息
+				// 重置表头颜色
+				resetColor(this);
 
-
-	for (var i = 0; i < 6; i++) {
-		// 鼠标点击事件
-		header[i].onclick = function() {
-
-			// 获取被点击表头的下标
-			for (var j = 0; j < 6; j++) {
-				if (this == header[j]) {
-					headerIndex = j;
-				}
-			}
-
-			// 计算是哪一个表格被点击了，然后将这个表格中的数据存到sortedTables中
-			tableIndex = Math.floor(headerIndex/3)*3;
-			sortedTables = tables.slice(tableIndex, tableIndex+3);
-
-			// 获取被点击区域的css信息
-			image = window.getComputedStyle(this, null).backgroundImage;
-			bgColor = window.getComputedStyle(this, null).backgroundColor;
-
-			// 判断是否是第一次点击，排序，改变背景颜色，改变背景图片
-			if (bgColor == "rgb(0, 0, 128)") {
-				sortedTables.sort(ascendSort);
-				// 重置所有表头的背景颜色
-				resetBgColor();
-				this.style.backgroundColor = "rgb(165, 177, 253)";
-			}
-			else if (bgColor == "rgb(165, 177, 253)") {
-				// 通过背景图片信息来决定是升序还是降序排列
-				if (image.indexOf("ascend") > 0) {
+				// 判断排序方法，并且执行排序
+				if (order == "ascend") {
+					this.className = "descend";
 					sortedTables.sort(descendSort);
-					this.style.backgroundImage = "url(\"descend.png\")";
-				} else if (image.indexOf("descend") > 0) {
+				} else {
+					this.className = "ascend";
 					sortedTables.sort(ascendSort);
-					this.style.backgroundImage = "url(\"ascend.png\")";
+				}
+
+				// 更改表格的内容
+				for (var p = 0; p < rowsNum; p++) {
+					for (var q = 0; q < colsNum; q++) {
+						if (rows[p] !== undefined) {
+							rows[p].cells[q].innerHTML = sortedTables[p][q];
+						}
+					}
+				}
+
+				// 升序排序
+				function ascendSort(a, b) {
+					if (a[index] < b[index]) return -1;
+					else return 1;
+				}
+
+				// 降序排序
+				function descendSort(a, b) {
+					if (a[index] > b[index]) return -1;
+					else return 1;
 				}
 			}
-
-			// 更改表格中的数据
-			var count = tableIndex*3;
-			for(var j = 0; j < 3; j++) {
-				for(var k = 0; k < 3; k++) {
-					cells[count].innerHTML = sortedTables[j][k];
-					count++;
-				}
-			}
-
-			// 升序排列
-			function ascendSort(a, b) {
-				if (a[headerIndex%3] < b[headerIndex%3]) return -1;
-				else return 1;
-			}
-
-			// 降序排列
-			function descendSort(a, b) {
-				if (a[headerIndex%3] < b[headerIndex%3]) return 1;
-				else return -1;
-			}
-
-			// 重置所有表头的背景颜色
-			function resetBgColor() {
-				for (var j = 0; j < 6; j++) {
-					header[j].style.backgroundColor = "rgb(0, 0, 128)";
-					header[j].style.backgroundImage = "url(\"ascend.png\")";
-				}
-			}
-
-		};
+		}
 	}
+}
+
+
+function resetColor(obj) {
+	var thead = obj.parentNode;
+	var th = thead.getElementsByTagName("th");    // 获取当前表格的表头
+	// 重置颜色（类名）
+	for (var i = 0; i < th.length; i++) {
+		th[i].className = "";
+	}
+}
+
+
+// 返回点击表头的下标
+function getIndex(obj) {
+	var thead = obj.parentNode;
+	for (var i = 0; i < thead.cells.length; i++) {
+		// 判断哪一个表头与所点击表头相一致
+		if (thead.cells[i].innerHTML == obj.innerHTML) {
+			return i;
+		}
+	}
+	
+	return -1;
+}
+
+
+// 返回要排序的表格的innerHTML内容
+function getSingleTable(obj) {
+	var rows = getRows(obj);
+	var colsNum = rows[0].cells.length;
+	var rowsNum = rows.length;
+	var tableWithoutTag = new Array;         // 存放要排序的表格的innerHTML的内容
+	// 初始化二维数组
+	for (var i = 0; i < rowsNum; i++) {
+		tableWithoutTag[i] = new Array;
+	}
+
+	for (var i = 0; i < rowsNum; i++) {
+		for (var j = 0; j < colsNum; j++) {
+			if (rows[i] !== undefined) {
+				tableWithoutTag[i][j] = rows[i].cells[j].innerHTML;
+			}
+		}
+	}
+
+	return tableWithoutTag;
+}
+
+
+// 返回当前显示的行
+function getRows(obj) {
+	var tbody = obj.parentNode.parentNode.parentNode.tBodies[0];
+	var tr = tbody.getElementsByTagName("tr");
+	var rows = [];
+
+	for (var i = 0; i < tr.length; i++) {
+		// 若改行的display不为none，则存入数组
+		if (getComputedStyle(tr[i], null).display == "table-row") rows.push(tr[i]);
+	}
+
+	return rows;
 }
